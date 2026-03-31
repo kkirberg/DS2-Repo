@@ -43,6 +43,8 @@ theoffice |>
   summarise(total = sum(str_count(text_lower, "that's what she said")))
 ```
 
+When I completed this assignment, I got an output of 33 here. You used str_count to count the number of occurrences, whereas I used nrow(). I believe there is an instance with a line having "that's what she said" three times, leading to my output being 2 less than yours.
+
 # part 2
 
 ```{r}
@@ -109,9 +111,13 @@ theoffice |>
   geom_bar()
 ```
 
+I think this could have benefited from putting the bars in descending order.
+
 # part 7
 
 From part 6, I decided to include "that's what he said."
+
+I also chose to only include "he" as an additional word. I do think some further investigating to see if those really fit the intended nature of the joke may be necessary for "he" and maybe even "we."
 
 ```{r}
 theoffice <- theoffice |> 
@@ -135,3 +141,15 @@ theoffice |>
 ```
 
 Since the count for 0 is so much larger than the others, I limited the y-axis at 50 so the other bars could be seen on the graph.
+
+I think it would be beneficial to either remove 0 from the graph and mention how large the number is (actually state the number), or have the number corresponding to each value on the y-axis be somewhere on the graph so viewers can identify the discrepancies.
+
+```{r}
+theoffice |> 
+  ggplot(aes(x = twss)) +
+  geom_bar() +
+  geom_text(stat = "count", aes(label = after_stat(count)), y = 0, vjust = -0.5) +
+  coord_cartesian(ylim = c(0, 50))
+```
+
+Above I added the total count for each bar to the graph, so viewers are able to get some insight on how much larger the 0 bar is than any other, without warping the plot.

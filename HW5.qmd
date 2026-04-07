@@ -38,9 +38,11 @@ library(tidytext)
 # part 1
 
 ```{r}
+# Updated code to get correct answer of 33
 theoffice |> 
   mutate(text_lower = str_to_lower(text)) |> 
-  summarise(total = sum(str_count(text_lower, "that's what she said")))
+  filter(str_detect(text_lower, "that's what she said")) |> 
+  nrow()
 ```
 
 When I completed this assignment, I got an output of 33 here. You used str_count to count the number of occurrences, whereas I used nrow(). I believe there is an instance with a line having "that's what she said" three times, leading to my output being 2 less than yours.
@@ -107,7 +109,7 @@ theoffice |>
   filter(word1 == "that's",
          word2 == "what",
          word4 == "said") |> 
-  ggplot(aes(x = word3)) +
+  ggplot(aes(x = fct_infreq(word3))) + # arranged bars in descending order
   geom_bar()
 ```
 
@@ -120,13 +122,30 @@ From part 6, I decided to include "that's what he said."
 I also chose to only include "he" as an additional word. I do think some further investigating to see if those really fit the intended nature of the joke may be necessary for "he" and maybe even "we."
 
 ```{r}
+# Further investigation - that's what he said and that's what we said
+theoffice |> 
+  mutate(text_lower = str_to_lower(text)) |>
+  unnest_tokens(ngram4, text_lower, "ngrams", n=4) |> 
+  filter(ngram4 == "that's what he said") |> 
+  select(text)
+
+theoffice |> 
+  mutate(text_lower = str_to_lower(text)) |>
+  unnest_tokens(ngram4, text_lower, "ngrams", n=4) |> 
+  filter(ngram4 == "that's what we said") |> 
+  select(text)
+```
+
+Based on these results, the fourth line for "that's what he said" should be included, and the second and third lines should not. There's a lack of context for the first line, so I'm unsure about that one. The line with "that's what we said" should not be included.
+
+```{r}
 theoffice <- theoffice |> 
   mutate(text_lower = str_to_lower(text)) |>
   unnest_tokens(ngram4, text_lower, "ngrams", n=4) |>
   mutate(twss = case_when(
     ngram4 == "that's what she said" ~ 1,
     ngram4 == c("that's what she a", "that's what she sai") ~ 3,
-    ngram4 == c("that's what he said") ~ 6,
+    (ngram4 == "that's what he said" & str_detect(text, "fritz") == TRUE) ~ 6, # updated code to include only the fourth result for "that's what he said"
     TRUE ~ 0
   ))
 ```
@@ -148,7 +167,7 @@ I think it would be beneficial to either remove 0 from the graph and mention how
 theoffice |> 
   ggplot(aes(x = twss)) +
   geom_bar() +
-  geom_text(stat = "count", aes(label = after_stat(count)), y = 0, vjust = -0.5) +
+  geom_text(stat = "count", aes(label = after_stat(count)), y = 0, vjust = -0.5, color = "orange") + # changed color to orange so labels are easier to see
   coord_cartesian(ylim = c(0, 50))
 ```
 
